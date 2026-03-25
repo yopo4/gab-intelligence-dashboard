@@ -1,0 +1,21 @@
+# ── Dépendances obligatoires ──────────────────────────────────
+# Backend FastAPI + pipeline ML de base
+fastapi>=0.110.0
+uvicorn[standard]>=0.27.0
+pandas>=2.0.0
+numpy>=1.26.0
+scikit-learn>=1.3.0     # requis par inference.py (CalibratedClassifierCV, pipelines...)
+joblib>=1.3.0           # sérialisation best_model.pkl (utilisé par scikit-learn)
+
+# ── Dépendances optionnelles — performances ML améliorées ─────
+# Installer pour utiliser les modèles correspondants dans modeling.py.
+# Le pipeline fonctionne sans eux (models non inclus dans la comparaison).
+# xgboost>=2.0.0
+# lightgbm>=4.0.0
+# imbalanced-learn>=0.11.0
+# optuna>=3.4.0            # tuning Bayesian dans scripts/tuning.py (fallback: RandomizedSearchCV)
+
+# ── Dépendances optionnelles — explicabilité ──────────────────
+# shap est utilisé dans inference.py pour les feature contributions (TreeExplainer).
+# Sans shap, les contributions sont calculées via feature_importances_ (approx).
+# shap>=0.44.0

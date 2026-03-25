@@ -1,0 +1,47 @@
+/* ════════════════════════════════════════════════════════
+   Design System — Banque Populaire du Maroc · GAB Analytics
+   ════════════════════════════════════════════════════════ */
+
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&display=swap');
+
+/* ── Design system modules ── */
+@import './styles/tokens.css';
+@import './styles/layout.css';
+@import './styles/components.css';
+
+/* ════════════════════════════════════════════════════════
+   Base reset & global styles
+   ════════════════════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+body {
+  background: var(--surface-0);
+  color: var(--text-primary);
+  font-family: 'Instrument Sans', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  transition: background var(--t-normal), color var(--t-normal);
+}
+
+h1, h2, h3, h4 { font-family: 'Instrument Sans', system-ui, sans-serif; font-weight: 600; }
+code, .mono, [class*="mono"] { font-family: 'Geist Mono', 'Fira Code', monospace; }
+
+a { color: inherit; text-decoration: none; }
+button { cursor: pointer; font-family: inherit; }
+img, svg { display: block; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--ink-600); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--ink-500); }
+
+/* ── Skeleton animation ── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
