@@ -7,6 +7,7 @@ import SectionHead from "../components/SectionHead";
 import Callout from "../components/Callout";
 import { PageSkeleton, ErrorState } from "../components/Skeleton";
 import { IconBulb } from "../components/Icons";
+import ExportMenu from "../components/ExportMenu";
 
 export default function Features() {
   const [top, setTop] = useState(25);
@@ -34,17 +35,22 @@ export default function Features() {
 
   return (
     <div>
-      <Hero
-        eyebrow="Explicabilité — ce que le modèle a appris"
-        titleMain="Quelles variables"
-        titleEm="font vraiment la différence ?"
-        desc="Importance moyenne Random Forest + Gradient Boosting sur 101 features engineered. Décryptez la logique du modèle."
-        tags={[
-          { label: "101 features", kind: "ghost" },
-          { label: "RF + GB", kind: "amber" },
-          { label: "Explicabilité", kind: "sage" },
-        ]}
-      />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Hero
+          eyebrow="Explicabilité — ce que le modèle a appris"
+          titleMain="Quelles variables"
+          titleEm="font vraiment la différence ?"
+          desc="Importance moyenne Random Forest + Gradient Boosting sur 101 features engineered. Décryptez la logique du modèle."
+          tags={[
+            { label: "101 features", kind: "ghost" },
+            { label: "RF + GB", kind: "amber" },
+            { label: "Explicabilité", kind: "sage" },
+          ]}
+        />
+        <div style={{ paddingTop: "2rem", flexShrink: 0 }}>
+          <ExportMenu section="features" formats={["csv", "json", "excel"]} />
+        </div>
+      </div>
 
       <div className="col-grid col-6-4">
         <div>

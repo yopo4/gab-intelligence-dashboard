@@ -7,6 +7,7 @@ import SectionHead from "../components/SectionHead";
 import Callout from "../components/Callout";
 import { PageSkeleton, ErrorState } from "../components/Skeleton";
 import { IconTarget, IconBarChart } from "../components/Icons";
+import ExportMenu from "../components/ExportMenu";
 
 const PALETTE = [
   "#C8102E", "#00703C", "#3B82C4", "#B8922A", "#7C3AED",
@@ -67,17 +68,22 @@ export default function Models() {
 
   return (
     <div>
-      <Hero
-        eyebrow="Évaluation & comparaison des algorithmes ML"
-        titleMain="Quel modèle"
-        titleEm="mérite votre confiance ?"
-        desc="Modèles comparés sur split temporel strict (train 2022 / test 2023) avec calibration isotonique. L'enjeu : maximiser le recall sans exploser les fausses alertes."
-        tags={[
-          { label: "Split temporel", kind: "ghost" },
-          { label: "Classe 9.8%", kind: "coral" },
-          { label: "class_weight=balanced", kind: "sage" },
-        ]}
-      />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Hero
+          eyebrow="Évaluation & comparaison des algorithmes ML"
+          titleMain="Quel modèle"
+          titleEm="mérite votre confiance ?"
+          desc="Modèles comparés sur split temporel strict (train 2022 / test 2023) avec calibration isotonique. L'enjeu : maximiser le recall sans exploser les fausses alertes."
+          tags={[
+            { label: "Split temporel", kind: "ghost" },
+            { label: "Classe 9.8%", kind: "coral" },
+            { label: "class_weight=balanced", kind: "sage" },
+          ]}
+        />
+        <div style={{ paddingTop: "2rem", flexShrink: 0 }}>
+          <ExportMenu section="models" formats={["csv", "json", "excel"]} />
+        </div>
+      </div>
 
       <SectionHead title="Tableau comparatif" />
       <table className="data-tbl" style={{ marginBottom: "1.5rem" }}>

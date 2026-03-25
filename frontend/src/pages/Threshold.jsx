@@ -8,6 +8,7 @@ import Callout from "../components/Callout";
 import KpiCard from "../components/KpiCard";
 import { PageSkeleton, ErrorState } from "../components/Skeleton";
 import { IconCheck, IconTarget, IconSliders } from "../components/Icons";
+import ExportMenu from "../components/ExportMenu";
 
 export default function Threshold() {
   const { data: meta } = useApi("/api/metadata");
@@ -55,17 +56,22 @@ export default function Threshold() {
 
   return (
     <div>
-      <Hero
-        eyebrow="Décision opérationnelle — arbitrage économique"
-        titleMain="Quel seuil"
-        titleEm="vous coûte le moins ?"
-        desc="Le seuil 0.5 par défaut n'est presque jamais optimal. Ajustez selon vos coûts réels et trouvez le point de bascule rentable."
-        tags={[
-          { label: "Simulation", kind: "ghost" },
-          { label: "MAD", kind: "amber" },
-          { label: "Recall / Coût", kind: "coral" },
-        ]}
-      />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Hero
+          eyebrow="Décision opérationnelle — arbitrage économique"
+          titleMain="Quel seuil"
+          titleEm="vous coûte le moins ?"
+          desc="Le seuil 0.5 par défaut n'est presque jamais optimal. Ajustez selon vos coûts réels et trouvez le point de bascule rentable."
+          tags={[
+            { label: "Simulation", kind: "ghost" },
+            { label: "MAD", kind: "amber" },
+            { label: "Recall / Coût", kind: "coral" },
+          ]}
+        />
+        <div style={{ paddingTop: "2rem", flexShrink: 0 }}>
+          <ExportMenu section="overview" formats={["csv", "excel", "pdf"]} />
+        </div>
+      </div>
 
       <div className="col-grid col-1-2">
         <div>

@@ -15,6 +15,10 @@ joblib>=1.3.0           # sérialisation best_model.pkl (utilisé par scikit-lea
 # imbalanced-learn>=0.11.0
 # optuna>=3.4.0            # tuning Bayesian dans scripts/tuning.py (fallback: RandomizedSearchCV)
 
+# ── Dépendances export (PDF, Excel) ────────────────────────────
+openpyxl>=3.1.0           # export Excel multi-feuilles
+reportlab>=4.0.0          # export PDF rapports professionnels
+
 # ── Dépendances optionnelles — explicabilité ──────────────────
 # shap est utilisé dans inference.py pour les feature contributions (TreeExplainer).
 # Sans shap, les contributions sont calculées via feature_importances_ (approx).

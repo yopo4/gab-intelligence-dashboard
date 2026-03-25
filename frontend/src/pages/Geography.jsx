@@ -7,6 +7,7 @@ import SectionHead from "../components/SectionHead";
 import Callout from "../components/Callout";
 import { PageSkeleton, ErrorState } from "../components/Skeleton";
 import { IconThermo } from "../components/Icons";
+import ExportMenu from "../components/ExportMenu";
 
 function levelBadge(taux) {
   if (taux > 10.5)
@@ -43,17 +44,22 @@ export default function Geography() {
 
   return (
     <div>
-      <Hero
-        eyebrow="Cartographie du risque opérationnel"
-        titleMain="Où se concentrent"
-        titleEm="les incidents ?"
-        desc="Analyse géographique des pannes par ville et région. Identifiez les zones à surveiller en priorité et les patterns saisonniers."
-        tags={[
-          { label: "13 villes", kind: "ghost" },
-          { label: "Maroc", kind: "amber" },
-          { label: "Heatmap", kind: "sky" },
-        ]}
-      />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <Hero
+          eyebrow="Cartographie du risque opérationnel"
+          titleMain="Où se concentrent"
+          titleEm="les incidents ?"
+          desc="Analyse géographique des pannes par ville et région. Identifiez les zones à surveiller en priorité et les patterns saisonniers."
+          tags={[
+            { label: "13 villes", kind: "ghost" },
+            { label: "Maroc", kind: "amber" },
+            { label: "Heatmap", kind: "sky" },
+          ]}
+        />
+        <div style={{ paddingTop: "2rem", flexShrink: 0 }}>
+          <ExportMenu section="geography" />
+        </div>
+      </div>
 
       <div className="col-grid col-6-4">
         <div>
