@@ -13,6 +13,7 @@ frontend/dist/
 # Data (large files)
 data/*.pkl
 data/*.log
+data/gab_features.csv
 outputs/
 
 # IDE
