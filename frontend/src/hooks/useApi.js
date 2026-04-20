@@ -5,6 +5,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
  * - Automatic abort on dep change (no stale data)
  * - Distinct loading / error states
  * - Optional transform function
+ * - refetch() to manually re-trigger without page reload
  */
 export function useApi(url, { transform, enabled = true } = {}) {
   const [state, setState] = useState({
@@ -12,7 +13,11 @@ export function useApi(url, { transform, enabled = true } = {}) {
     loading: true,
     error: null,
   });
-  const abortRef = useRef(null);
+  const abortRef  = useRef(null);
+  const counterRef = useRef(0); // bumped by refetch() to re-run the effect
+
+  const [tick, setTick] = useState(0);
+  const refetch = useCallback(() => setTick((t) => t + 1), []);
 
   useEffect(() => {
     if (!enabled || !url) {
@@ -40,13 +45,14 @@ export function useApi(url, { transform, enabled = true } = {}) {
       });
 
     return () => abortRef.current?.abort();
-  }, [url, enabled]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [url, enabled, tick]);
 
-  return state;
+  return { ...state, refetch };
 }
 
 /**
- * POST variant — re-fires when `body` reference changes
+ * POST variant — re-fires when `body` content changes (stable JSON comparison)
  */
 export function usePost(url, body) {
   const [state, setState] = useState({
@@ -55,6 +61,7 @@ export function usePost(url, body) {
     error: null,
   });
   const abortRef = useRef(null);
+  // Stable string comparison avoids re-firing on same-content object references
   const bodyStr = JSON.stringify(body);
 
   useEffect(() => {
@@ -68,7 +75,10 @@ export function usePost(url, body) {
       body: bodyStr,
       signal: abortRef.current.signal,
     })
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
       .then((data) => setState({ data, loading: false, error: null }))
       .catch((err) => {
         if (err.name === "AbortError") return;
@@ -82,7 +92,7 @@ export function usePost(url, body) {
 }
 
 /**
- * Polling variant — refetches every `interval` ms
+ * Polling variant — refetches every `interval` ms with AbortController cleanup
  */
 export function useApiPoll(url, interval = 30000) {
   const [state, setState] = useState({
@@ -90,23 +100,31 @@ export function useApiPoll(url, interval = 30000) {
     loading: true,
     error: null,
   });
+  const abortRef = useRef(null);
 
   const fetchData = useCallback(() => {
-    fetch(url)
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
+
+    fetch(url, { signal: abortRef.current.signal })
       .then((r) => {
         if (!r.ok) throw new Error(`HTTP ${r.status}`);
         return r.json();
       })
       .then((data) => setState({ data, loading: false, error: null }))
-      .catch((err) =>
-        setState((s) => ({ ...s, loading: false, error: err.message })),
-      );
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setState((s) => ({ ...s, loading: false, error: err.message }));
+      });
   }, [url]);
 
   useEffect(() => {
     fetchData();
     const id = setInterval(fetchData, interval);
-    return () => clearInterval(id);
+    return () => {
+      clearInterval(id);
+      abortRef.current?.abort();
+    };
   }, [fetchData, interval]);
 
   return { ...state, refresh: fetchData };

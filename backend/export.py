@@ -18,6 +18,7 @@ router = APIRouter(prefix="/api/export", tags=["export"])
 # Lazy imports — installed on demand
 _openpyxl = None
 _rl = None
+_mpl = None
 
 
 def _ensure_openpyxl():
@@ -34,6 +35,288 @@ def _ensure_reportlab():
         import reportlab as rl
         _rl = rl
     return _rl
+
+
+def _ensure_matplotlib():
+    global _mpl
+    if _mpl is None:
+        import matplotlib
+        matplotlib.use("Agg")
+        import matplotlib.pyplot as plt
+        _mpl = plt
+    return _mpl
+
+
+def _mpl_style():
+    """Apply BPM professional style to matplotlib."""
+    plt = _ensure_matplotlib()
+    plt.rcParams.update({
+        "figure.facecolor": "white",
+        "axes.facecolor": "white",
+        "font.family": "sans-serif",
+        "font.sans-serif": ["Helvetica", "Arial", "DejaVu Sans"],
+        "axes.edgecolor": "#cccccc",
+        "axes.linewidth": 0.5,
+        "axes.grid": True,
+        "grid.color": "#eeeeee",
+        "grid.linewidth": 0.5,
+        "xtick.color": "#666666",
+        "ytick.color": "#666666",
+        "xtick.labelsize": 8,
+        "ytick.labelsize": 8,
+        "axes.spines.top": False,
+        "axes.spines.right": False,
+    })
+
+
+def _fig_to_buf(fig, dpi=150):
+    """Render a matplotlib figure to a BytesIO PNG buffer."""
+    plt = _ensure_matplotlib()
+    buf = io.BytesIO()
+    fig.savefig(buf, format="png", dpi=dpi, bbox_inches="tight",
+                facecolor="white", edgecolor="none")
+    plt.close(fig)
+    buf.seek(0)
+    return buf
+
+
+# ── Chart generators (matplotlib → BytesIO PNG) ─────────────
+
+BPM_RED_HEX = "#C8102E"
+BPM_GREEN_HEX = "#00703C"
+BPM_DARK_HEX = "#2a2e40"
+
+
+def _chart_kpis(nb_gab, nb_pannes, taux, disponibilite, meilleur_modele, f1_score):
+    """KPI visual cards — 2×3 grid."""
+    from matplotlib.patches import FancyBboxPatch
+    plt = _ensure_matplotlib()
+
+    cards = [
+        ("GAB surveillés", str(nb_gab), BPM_DARK_HEX),
+        ("Pannes détectées", f"{nb_pannes:,}", BPM_RED_HEX),
+        ("Taux de panne", f"{taux:.2f}%", BPM_RED_HEX),
+        ("Disponibilité", f"{disponibilite:.1f}%", BPM_GREEN_HEX),
+        ("Meilleur modèle", meilleur_modele[:20], BPM_DARK_HEX),
+        ("F1-Score", f"{f1_score:.4f}", BPM_GREEN_HEX),
+    ]
+    fig, axes = plt.subplots(2, 3, figsize=(7.5, 2.8))
+    for ax, (label, value, accent) in zip(axes.flat, cards):
+        ax.set_xlim(0, 1)
+        ax.set_ylim(0, 1)
+        ax.axis("off")
+        bg = FancyBboxPatch((0.03, 0.03), 0.94, 0.94,
+                            boxstyle="round,pad=0.05",
+                            facecolor="#F8F8F8", edgecolor=accent, linewidth=1.5)
+        ax.add_patch(bg)
+        ax.text(0.5, 0.58, value, fontsize=17, fontweight="bold",
+                ha="center", va="center", color=accent)
+        ax.text(0.5, 0.2, label, fontsize=7.5, ha="center", va="center",
+                color="#666666")
+    fig.subplots_adjust(wspace=0.15, hspace=0.2)
+    return _fig_to_buf(fig)
+
+
+def _chart_geography(geo_df):
+    """Horizontal bar — taux de panne par ville, sorted."""
+    plt = _ensure_matplotlib()
+    geo = geo_df.sort_values("taux_panne", ascending=True).copy()
+    n = len(geo)
+    fig, ax = plt.subplots(figsize=(7.0, max(2.5, n * 0.35)))
+    bars = ax.barh(geo["ville"], geo["taux_panne"],
+                   color=BPM_RED_HEX, edgecolor="none", height=0.6)
+    for bar, val in zip(bars, geo["taux_panne"]):
+        ax.text(val + 0.15, bar.get_y() + bar.get_height() / 2,
+                f"{val:.2f}%", va="center", fontsize=7.5, color="#333333")
+    ax.set_xlabel("Taux de panne (%)", fontsize=9, color="#666666")
+    ax.set_title("Taux de panne par ville", fontsize=12, fontweight="bold",
+                 color=BPM_DARK_HEX, pad=10)
+    ax.set_xlim(0, geo["taux_panne"].max() * 1.15)
+    fig.tight_layout()
+    return _fig_to_buf(fig)
+
+
+def _chart_models(resultats, meilleur):
+    """Grouped bar chart — F1 / Recall / Precision per model."""
+    plt = _ensure_matplotlib()
+    models = [m for m in resultats if m != "Dummy (Stratified)"]
+    f1s = [resultats[m].get("f1", 0) for m in models]
+    recalls = [resultats[m].get("recall", 0) for m in models]
+    precs = [resultats[m].get("precision", 0) for m in models]
+
+    x = np.arange(len(models))
+    width = 0.22
+    fig, ax = plt.subplots(figsize=(7.0, 4.0))
+    ax.bar(x - width, f1s, width, label="F1", color=BPM_RED_HEX, edgecolor="none")
+    ax.bar(x, recalls, width, label="Recall", color=BPM_GREEN_HEX, edgecolor="none")
+    ax.bar(x + width, precs, width, label="Précision", color=BPM_DARK_HEX, edgecolor="none")
+
+    # Highlight best model
+    if meilleur in models:
+        bi = models.index(meilleur)
+        ax.axvspan(bi - 0.45, bi + 0.45, alpha=0.08, color="#FFD700", zorder=0)
+        best_f1 = resultats[meilleur].get("f1", 0)
+        ax.annotate("★ Best", xy=(bi - width, best_f1),
+                    xytext=(bi - width, best_f1 + 0.06),
+                    fontsize=7, color=BPM_RED_HEX, ha="center", fontweight="bold")
+
+    ax.set_xticks(x)
+    ax.set_xticklabels([m[:18] for m in models], rotation=30, ha="right", fontsize=7.5)
+    ax.set_ylabel("Score", fontsize=9, color="#666666")
+    ax.set_ylim(0, 1.08)
+    ax.legend(fontsize=8, loc="upper right")
+    ax.set_title("Performance des modèles ML", fontsize=12, fontweight="bold",
+                 color=BPM_DARK_HEX, pad=10)
+    fig.tight_layout()
+    return _fig_to_buf(fig)
+
+
+def _chart_features(feat_df, top_n=15):
+    """Horizontal bar — top features with gradient color."""
+    from matplotlib.colors import LinearSegmentedColormap
+    plt = _ensure_matplotlib()
+
+    fi = feat_df.head(top_n).sort_values("imp_moy", ascending=True).copy()
+    cmap = LinearSegmentedColormap.from_list("bpm", ["#f4a6b0", BPM_RED_HEX])
+    norm_vals = (fi["imp_moy"] - fi["imp_moy"].min()) / (fi["imp_moy"].max() - fi["imp_moy"].min() + 1e-10)
+    colors = [cmap(v) for v in norm_vals]
+
+    fig, ax = plt.subplots(figsize=(7.0, max(3.0, top_n * 0.28)))
+    bars = ax.barh(fi["feature"], fi["imp_moy"], color=colors, edgecolor="none", height=0.6)
+    for bar, val in zip(bars, fi["imp_moy"]):
+        ax.text(val + 0.0005, bar.get_y() + bar.get_height() / 2,
+                f"{val:.4f}", va="center", fontsize=7, color="#333333")
+    ax.set_xlabel("Importance moyenne", fontsize=9, color="#666666")
+    ax.set_title(f"Top {top_n} variables prédictives", fontsize=12, fontweight="bold",
+                 color=BPM_DARK_HEX, pad=10)
+    ax.set_xlim(0, fi["imp_moy"].max() * 1.12)
+    fig.tight_layout()
+    return _fig_to_buf(fig)
+
+
+def _chart_temporal(df):
+    """Line chart — monthly taux de panne with summer highlight."""
+    plt = _ensure_matplotlib()
+    monthly = (
+        df.assign(mois=df["date"].dt.to_period("M"))
+        .groupby("mois")
+        .agg(pannes=("panne_sous_48h", "sum"), obs=("panne_sous_48h", "count"))
+        .reset_index()
+    )
+    monthly["taux"] = (monthly["pannes"] / monthly["obs"] * 100).round(2)
+    monthly["mois_str"] = monthly["mois"].astype(str)
+
+    fig, ax = plt.subplots(figsize=(7.0, 3.5))
+    x = np.arange(len(monthly))
+    ax.plot(x, monthly["taux"].values, color=BPM_RED_HEX, linewidth=2,
+            marker="o", markersize=4, zorder=3, label="Taux de panne")
+    ax.fill_between(x, monthly["taux"].values, alpha=0.06, color=BPM_RED_HEX)
+
+    # Highlight summer months (June, July, August)
+    summer_drawn = False
+    for i, row in monthly.iterrows():
+        m = row["mois"].month
+        if m == 6:
+            end_idx = min(i + 2, len(monthly) - 1)
+            lbl = "Été (juin-août)" if not summer_drawn else ""
+            ax.axvspan(i - 0.4, end_idx + 0.4, alpha=0.10, color="#FF6B35", label=lbl)
+            summer_drawn = True
+
+    ax.set_xticks(x)
+    labels = monthly["mois_str"].tolist()
+    ax.set_xticklabels(labels, rotation=45, ha="right", fontsize=6.5)
+    ax.set_ylabel("Taux de panne (%)", fontsize=9, color="#666666")
+    ax.set_title("Évolution mensuelle du taux de panne", fontsize=12, fontweight="bold",
+                 color=BPM_DARK_HEX, pad=10)
+    ax.legend(fontsize=8, loc="upper left")
+    fig.tight_layout()
+    return _fig_to_buf(fig)
+
+
+def _chart_threshold(resultats, meilleur, couts_dict):
+    """Dual-axis: cost curve + F1 vs threshold."""
+    plt = _ensure_matplotlib()
+    nom = meilleur if meilleur in resultats else next(iter(resultats))
+    r = resultats[nom]
+    cout_correctif = couts_dict.get("fn", 5000)
+    cout_preventif = couts_dict.get("tp", 1500)
+    cout_fausse = couts_dict.get("fp", 500)
+
+    tp_total = r["tp"] + r["fn"]
+    tn_total = r["tn"] + r["fp"]
+    total = tp_total + tn_total
+    base_rate = tp_total / total if total > 0 else 0.1
+
+    seuils = np.linspace(0.01, 0.99, 200)
+
+    def interp3(t, y0, y_mid, y1):
+        if t <= 0.5:
+            return y0 + (t / 0.5) * (y_mid - y0)
+        return y_mid + ((t - 0.5) / 0.5) * (y1 - y_mid)
+
+    f1s_s, couts_s = [], []
+    for s in seuils:
+        rec = float(np.clip(interp3(float(s), 1.0, float(r["recall"]), 0.0), 0, 1))
+        prec = float(np.clip(interp3(float(s), float(base_rate), float(r["precision"]), 1.0), 0, 1))
+        f1 = 2 * prec * rec / (prec + rec + 1e-10)
+        tp_s = int(rec * tp_total)
+        fp_s = int(tp_s / (prec + 1e-10) - tp_s) if prec > 1e-10 else 0
+        fn_s = tp_total - tp_s
+        f1s_s.append(float(f1))
+        couts_s.append(int(tp_s * cout_preventif + fp_s * cout_fausse + fn_s * cout_correctif))
+
+    cout_sans = tp_total * cout_correctif
+    seuil_f1 = float(seuils[int(np.argmax(f1s_s))])
+    seuil_econ = float(seuils[int(np.argmin(couts_s))])
+    economie = cout_sans - min(couts_s)
+    eco_pct = economie / cout_sans * 100 if cout_sans > 0 else 0
+
+    fig, ax1 = plt.subplots(figsize=(7.0, 4.0))
+    ax2 = ax1.twinx()
+
+    # Cost curve (left axis)
+    ax1.plot(seuils, [c / 1000 for c in couts_s], color=BPM_RED_HEX, linewidth=2,
+             label="Coût total (k MAD)")
+    ax1.fill_between(seuils, [c / 1000 for c in couts_s], alpha=0.06, color=BPM_RED_HEX)
+    ax1.axhline(y=cout_sans / 1000, color="#E05252", linestyle="--", linewidth=1, alpha=0.7,
+                label="Sans modèle")
+
+    # F1 curve (right axis)
+    ax2.plot(seuils, f1s_s, color=BPM_GREEN_HEX, linewidth=1.5, linestyle="--",
+             label="F1-Score")
+
+    # Mark optimal points
+    ax1.axvline(seuil_econ, color=BPM_RED_HEX, linestyle=":", alpha=0.5, linewidth=1)
+    ax1.plot(seuil_econ, min(couts_s) / 1000, "v", color=BPM_RED_HEX, markersize=10, zorder=5)
+    ax2.axvline(seuil_f1, color=BPM_GREEN_HEX, linestyle=":", alpha=0.5, linewidth=1)
+    ax2.plot(seuil_f1, max(f1s_s), "^", color=BPM_GREEN_HEX, markersize=10, zorder=5)
+
+    # Annotations
+    ax1.annotate(f"Éco opt: {seuil_econ:.2f}\n−{economie / 1000:.0f}k MAD ({eco_pct:.0f}%)",
+                 xy=(seuil_econ, min(couts_s) / 1000),
+                 xytext=(seuil_econ + 0.08, min(couts_s) / 1000 * 1.15),
+                 fontsize=7, color=BPM_RED_HEX,
+                 arrowprops=dict(arrowstyle="->", color=BPM_RED_HEX, lw=0.8))
+    ax2.annotate(f"F1 opt: {seuil_f1:.2f}",
+                 xy=(seuil_f1, max(f1s_s)),
+                 xytext=(seuil_f1 + 0.08, max(f1s_s) - 0.05),
+                 fontsize=7, color=BPM_GREEN_HEX,
+                 arrowprops=dict(arrowstyle="->", color=BPM_GREEN_HEX, lw=0.8))
+
+    ax1.set_xlabel("Seuil de décision", fontsize=9, color="#666666")
+    ax1.set_ylabel("Coût total (k MAD)", fontsize=9, color=BPM_RED_HEX)
+    ax2.set_ylabel("F1-Score", fontsize=9, color=BPM_GREEN_HEX)
+    ax2.set_ylim(0, 1.05)
+
+    # Combined legend
+    h1, l1 = ax1.get_legend_handles_labels()
+    h2, l2 = ax2.get_legend_handles_labels()
+    ax1.legend(h1 + h2, l1 + l2, fontsize=7.5, loc="upper right")
+
+    ax1.set_title("Optimisation du seuil de décision", fontsize=12, fontweight="bold",
+                  color=BPM_DARK_HEX, pad=10)
+    fig.tight_layout()
+    return _fig_to_buf(fig), seuil_f1, seuil_econ, economie, eco_pct
 
 
 # ── Helpers ───────────────────────────────────────────────────
@@ -307,12 +590,11 @@ def export_pdf(
     from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_RIGHT
     from reportlab.platypus import (
         SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle,
-        PageBreak, HRFlowable,
+        PageBreak, HRFlowable, Image,
     )
-    from reportlab.graphics.shapes import Drawing, Rect, String, Line
-    from reportlab.graphics.charts.barcharts import VerticalBarChart, HorizontalBarChart
-    from reportlab.graphics.charts.piecharts import Pie
-    from reportlab.graphics.charts.legends import Legend
+
+    _ensure_matplotlib()
+    _mpl_style()
 
     DF, FEAT_IMP, RESULTATS, MEILLEUR_MODELE, COUTS, filter_df = _get_main_module()
     v, t, a = _parse_filters(villes, types, annees)
@@ -436,7 +718,13 @@ def export_pdf(
         ("BOTTOMPADDING", (0, 0), (-1, -1), 8),
     ]))
     elements.append(kpi_table)
-    elements.append(Spacer(1, 10 * mm))
+    elements.append(Spacer(1, 6 * mm))
+
+    # KPI visual cards (matplotlib)
+    kpi_buf = _chart_kpis(nb_gab, nb_pannes, taux, disponibilite,
+                          MEILLEUR_MODELE, best_r["f1"])
+    elements.append(Image(kpi_buf, width=W, height=W * 2.8 / 7.5))
+    elements.append(Spacer(1, 6 * mm))
 
     # ── Analyse textuelle ──
     elements.append(Paragraph("Synthèse", ParagraphStyle(
@@ -493,26 +781,13 @@ def export_pdf(
         ("BOTTOMPADDING", (0, 0), (-1, -1), 6),
     ]))
     elements.append(geo_table)
-    elements.append(Spacer(1, 8 * mm))
+    elements.append(Spacer(1, 6 * mm))
 
-    # Bar chart — taux par ville
-    drawing = Drawing(W, 180)
-    chart = HorizontalBarChart()
-    chart.x = 80
-    chart.y = 10
-    chart.width = W - 100
-    chart.height = 155
-    chart.data = [list(reversed(geo["taux_panne"].tolist()))]
-    chart.categoryAxis.categoryNames = list(reversed(geo["ville"].tolist()))
-    chart.categoryAxis.labels.fontName = "Helvetica"
-    chart.categoryAxis.labels.fontSize = 8
-    chart.valueAxis.valueMin = 0
-    chart.valueAxis.labels.fontSize = 8
-    chart.bars[0].fillColor = BPM_RED
-    chart.bars[0].strokeColor = None
-    chart.barWidth = 8
-    drawing.add(chart)
-    elements.append(drawing)
+    # Bar chart — taux par ville (matplotlib)
+    n_cities = len(geo)
+    geo_buf = _chart_geography(geo)
+    geo_h = W * max(2.5, n_cities * 0.35) / 7.0
+    elements.append(Image(geo_buf, width=W, height=min(geo_h, 180 * mm)))
 
     elements.append(PageBreak())
 
@@ -547,6 +822,11 @@ def export_pdf(
     ]))
     elements.append(model_table)
     elements.append(Spacer(1, 6 * mm))
+
+    # Grouped bar chart (matplotlib)
+    model_buf = _chart_models(RESULTATS, MEILLEUR_MODELE)
+    elements.append(Image(model_buf, width=W, height=W * 4.0 / 7.0))
+    elements.append(Spacer(1, 4 * mm))
 
     elements.append(Paragraph(
         f"<b>* Meilleur modèle sélectionné :</b> {MEILLEUR_MODELE}<br/>"
@@ -588,6 +868,11 @@ def export_pdf(
     ]))
     elements.append(feat_table)
     elements.append(Spacer(1, 6 * mm))
+
+    # Feature importance bar chart (matplotlib)
+    feat_buf = _chart_features(FEAT_IMP, top_n=15)
+    elements.append(Image(feat_buf, width=W, height=W * max(3.0, 15 * 0.28) / 7.0))
+    elements.append(Spacer(1, 4 * mm))
 
     elements.append(Paragraph(
         "Les variables liées à la <b>maintenance</b> (jours depuis maintenance, score de négligence) "
@@ -657,11 +942,38 @@ def export_pdf(
         f"Le pic estival confirme le rôle du stress thermique comme facteur aggravant.",
         styles["BodyText2"],
     ))
+    elements.append(Spacer(1, 4 * mm))
+
+    # Temporal line chart (matplotlib)
+    temp_buf = _chart_temporal(df)
+    elements.append(Image(temp_buf, width=W, height=W * 3.5 / 7.0))
 
     elements.append(PageBreak())
 
-    # ── Page 7: Recommandations ──
-    elements.append(Paragraph("6. Recommandations", styles["SectionTitle"]))
+    # ── Page 7: Optimisation du Seuil ──
+    elements.append(Paragraph("6. Optimisation du Seuil", styles["SectionTitle"]))
+    elements.append(HRFlowable(width="100%", thickness=1, color=BPM_RED, spaceAfter=12))
+
+    threshold_result = _chart_threshold(RESULTATS, MEILLEUR_MODELE, COUTS)
+    thresh_buf, seuil_f1_opt, seuil_econ_opt, eco_max, eco_pct = threshold_result
+    elements.append(Image(thresh_buf, width=W, height=W * 4.0 / 7.0))
+    elements.append(Spacer(1, 6 * mm))
+
+    elements.append(Paragraph(
+        f"Le seuil <b>F1-optimal</b> est de <b>{seuil_f1_opt:.2f}</b> "
+        f"(maximise la détection des pannes). "
+        f"Le seuil <b>économique optimal</b> est de <b>{seuil_econ_opt:.2f}</b>, "
+        f"permettant une économie estimée de <b>{eco_max / 1000:.0f} k MAD ({eco_pct:.0f}%)</b> "
+        f"par rapport à une stratégie 100% corrective.<br/>"
+        f"Ce graphique permet aux décideurs de choisir le seuil adapté à leur tolérance au risque "
+        f"et à leurs contraintes budgétaires.",
+        styles["BodyText2"],
+    ))
+
+    elements.append(PageBreak())
+
+    # ── Page 8: Recommandations ──
+    elements.append(Paragraph("7. Recommandations", styles["SectionTitle"]))
     elements.append(HRFlowable(width="100%", thickness=1, color=BPM_RED, spaceAfter=12))
 
     recommendations = [

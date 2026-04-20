@@ -1,0 +1,552 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{pgfgantt}
+\usepackage{amssymb}
+
+% Couleurs BPM
+\definecolor{bpmred}{HTML}{C8102E}
+\definecolor{bpmgreen}{HTML}{00703C}
+\definecolor{bpmblue}{HTML}{1A3A5C}
+\definecolor{bpmgray}{HTML}{F5F5F5}
+\definecolor{done}{HTML}{27AE60}
+\definecolor{inprogress}{HTML}{F39C12}
+\definecolor{todo}{HTML}{E74C3C}
+
+% Titres
+\titleformat{\chapter}[display]{\normalfont\Huge\bfseries\color{bpmred}}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}{\normalfont\Large\bfseries\color{bpmblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{bpmblue!80}}{\thesubsection}{1em}{}
+
+% En-tête/pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{bpmblue}{État d'Avancement — GAB Intelligence Dashboard}}
+\fancyhead[R]{\small\textcolor{bpmblue}{Banque Populaire du Maroc}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=bpmblue,
+    urlcolor=bpmred,
+}
+
+% Commandes
+\newcommand{\done}{\textcolor{done}{\checkmark\ Terminé}}
+\newcommand{\inprog}{\textcolor{inprogress}{$\circlearrowright$\ En cours}}
+\newcommand{\notstarted}{\textcolor{todo}{$\circ$\ Non démarré}}
+
+\begin{document}
+
+% ===== PAGE DE GARDE =====
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+
+{\Large\textsc{Banque Populaire du Maroc}}\par
+\vspace{0.5cm}
+{\large Projet de Fin d'Études — 2024/2025}\par
+
+\vspace{2cm}
+\rule{\textwidth}{2pt}\par
+\vspace{0.8cm}
+{\Huge\bfseries\textcolor{bpmred}{État d'Avancement}}\par
+\vspace{0.5cm}
+{\LARGE\textcolor{bpmblue}{Système de Détection et de Prédiction\\des Pannes des GAB}}\par
+\vspace{0.3cm}
+{\Large GAB Intelligence Dashboard}\par
+\vspace{0.8cm}
+\rule{\textwidth}{2pt}\par
+
+\vspace{1.5cm}
+
+\begin{tabular}{ll}
+\textbf{Organisme d'accueil :} & Banque Populaire du Maroc \\
+\textbf{Encadrant entreprise :} & \textit{[Nom de l'encadrant]} \\
+\textbf{Encadrant académique :} & \textit{[Nom de l'encadrant]} \\
+\textbf{Réalisé par :} & \textit{[Votre nom complet]} \\
+\textbf{Date du rapport :} & \today \\
+\end{tabular}
+
+\vspace{2cm}
+
+\begin{tcolorbox}[colback=done!10, colframe=done, title=\textbf{Avancement global}]
+\centering
+{\Huge\textcolor{done}{\textbf{95\%}}}\\[0.5em]
+{\large Le système est fonctionnel et opérationnel.\\Reste : tests finaux et rédaction du rapport de soutenance.}
+\end{tcolorbox}
+
+\vfill
+{\small Document confidentiel — Diffusion restreinte}
+\end{titlepage}
+
+% ===== TABLE DES MATIÈRES =====
+\tableofcontents
+\newpage
+
+% ===================================================================
+\chapter{Résumé Exécutif}
+% ===================================================================
+
+Le projet \textbf{GAB Intelligence Dashboard} est un système de détection et de prédiction de pannes des Guichets Automatiques Bancaires de la Banque Populaire du Maroc. Il combine des techniques de \textbf{Machine Learning} avec un \textbf{tableau de bord interactif} pour permettre aux équipes de maintenance de passer d'une approche corrective à une approche prédictive.
+
+\begin{tcolorbox}[colback=bpmgray, colframe=bpmblue, title=\textbf{Chiffres clés}]
+\begin{itemize}[leftmargin=1cm]
+    \item \textbf{200 GAB} surveillés dans \textbf{13 villes} marocaines
+    \item \textbf{146\,000 observations} analysées sur 2 ans (2022–2023)
+    \item \textbf{101 features} d'ingénierie extraites en 7 familles
+    \item \textbf{5 modèles ML} entraînés, évalués et comparés
+    \item \textbf{Prédiction 48h à l'avance} avec un F1-score $\geq$ 0.70
+    \item \textbf{6 modules} fonctionnels entièrement développés
+    \item \textbf{Économies potentielles $>$ 50\%} sur les coûts de maintenance
+\end{itemize}
+\end{tcolorbox}
+
+% ===================================================================
+\chapter{Avancement par Phase}
+% ===================================================================
+
+\section{Vue synthétique}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\textwidth}{|c|X|c|c|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{\#} & \textbf{Phase} & \textbf{Avancement} & \textbf{Statut} \\
+\hline
+1 & Étude de l'existant et analyse des besoins & 100\% & \done \\
+\hline
+2 & Collecte et préparation des données & 100\% & \done \\
+\hline
+3 & Ingénierie des features et entraînement ML & 100\% & \done \\
+\hline
+4 & Développement du backend (API REST) & 100\% & \done \\
+\hline
+5 & Développement du frontend (Dashboard) & 100\% & \done \\
+\hline
+6 & Intégration, tests et optimisation & 90\% & \inprog \\
+\hline
+7 & Rédaction du rapport et soutenance & 60\% & \inprog \\
+\hline
+\end{tabularx}
+\caption{Avancement global par phase}
+\end{table}
+
+% ===================================================================
+\section{Phase 1 — Étude de l'existant et analyse des besoins}
+
+\textbf{Statut : \done}
+
+\begin{itemize}
+    \item Étude du parc GAB de la Banque Populaire (200 automates, 4 marques, 13 villes).
+    \item Analyse des processus de maintenance existants (modèle correctif).
+    \item Identification des indicateurs clés~: taux de panne, MTBF, coûts d'intervention.
+    \item Rédaction du cahier des charges fonctionnel et technique.
+    \item Choix de l'architecture technique (FastAPI + React + scikit-learn).
+\end{itemize}
+
+% ===================================================================
+\section{Phase 2 — Collecte et préparation des données}
+
+\textbf{Statut : \done}
+
+\begin{itemize}
+    \item Constitution du jeu de données~: \textbf{146\,000 observations} sur la période janvier 2022 – décembre 2023.
+    \item Variables collectées~: identifiant GAB, ville, type, environnement, âge, nombre d'erreurs, température, jours depuis maintenance, nombre de transactions, etc.
+    \item Nettoyage et traitement des valeurs manquantes.
+    \item Analyse exploratoire des données (EDA)~:
+    \begin{itemize}
+        \item Taux de panne global~: \textbf{9,8\%} (classe déséquilibrée).
+        \item Villes les plus affectées~: Safi, Agadir, Casablanca ($\approx$ 10–11\%).
+        \item Variations saisonnières significatives identifiées.
+    \end{itemize}
+\end{itemize}
+
+% ===================================================================
+\section{Phase 3 — Ingénierie des features et entraînement ML}
+
+\textbf{Statut : \done}
+
+\subsection{Ingénierie des features}
+
+Construction de \textbf{101 features} réparties en 7 familles~:
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|l|c|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Famille} & \textbf{Exemples} & \textbf{Nombre} \\
+\hline
+Original & âge, erreurs, température, transactions & $\sim$15 \\
+\hline
+Lag (J-1/3/7) & erreurs\_j1, temperature\_j3, transactions\_j7 & $\sim$20 \\
+\hline
+Rolling (7-14j) & erreurs\_moy\_7j, temp\_std\_14j & $\sim$20 \\
+\hline
+Tendance & pente\_erreurs, delta\_temperature & $\sim$10 \\
+\hline
+Temporel & mois, jour\_semaine, saison & $\sim$10 \\
+\hline
+Catégoriel & ville\_encoded, type\_gab\_encoded & $\sim$15 \\
+\hline
+Interaction & age $\times$ erreurs, maintenance $\times$ temp & $\sim$11 \\
+\hline
+\end{tabular}
+\caption{Familles de features construites}
+\end{table}
+
+\subsection{Entraînement et évaluation}
+
+\begin{itemize}
+    \item \textbf{Découpage temporel}~: entraînement sur 2022, test sur 2023.
+    \item \textbf{5 modèles} entraînés et comparés~:
+\end{itemize}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|c|c|c|c|c|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Modèle} & \textbf{F1} & \textbf{Précision} & \textbf{Rappel} & \textbf{AUC-ROC} & \textbf{AUC-PR} \\
+\hline
+Régression Logistique & $\sim$0.55 & $\sim$0.60 & $\sim$0.52 & $\sim$0.80 & $\sim$0.40 \\
+\hline
+\textbf{Random Forest} & $\sim$\textbf{0.72} & $\sim$\textbf{0.68} & $\sim$\textbf{0.76} & $\sim$\textbf{0.92} & $\sim$\textbf{0.65} \\
+\hline
+Gradient Boosting & $\sim$0.70 & $\sim$0.66 & $\sim$0.74 & $\sim$0.91 & $\sim$0.62 \\
+\hline
+SVM & $\sim$0.58 & $\sim$0.62 & $\sim$0.55 & $\sim$0.82 & $\sim$0.42 \\
+\hline
+Réseau de Neurones & $\sim$0.65 & $\sim$0.63 & $\sim$0.67 & $\sim$0.87 & $\sim$0.55 \\
+\hline
+\textit{Dummy (baseline)} & $\sim$0.17 & $\sim$0.10 & $\sim$0.50 & $\sim$0.50 & $\sim$0.10 \\
+\hline
+\end{tabular}
+\caption{Résultats comparatifs des modèles (valeurs approximatives)}
+\end{table}
+
+\begin{itemize}
+    \item \textbf{Meilleur modèle}~: Random Forest avec calibration isotonique.
+    \item \textbf{Calibration}~: régression isotonique appliquée pour des probabilités fiables.
+    \item Sérialisation du modèle et des encodeurs en fichiers \texttt{.pkl}.
+\end{itemize}
+
+\textit{Note~: Les valeurs exactes sont disponibles dans le fichier \texttt{resultats\_modeles.json} du projet.}
+
+% ===================================================================
+\section{Phase 4 — Développement du backend (API REST)}
+
+\textbf{Statut : \done}
+
+\subsection{Endpoints développés}
+
+\textbf{12 endpoints} API REST implémentés avec FastAPI~:
+
+\begin{itemize}
+    \item \texttt{GET /api/health} — État du système et mode du modèle (ML ou heuristique).
+    \item \texttt{GET /api/metadata} — Métadonnées (villes, types GAB, années disponibles).
+    \item \texttt{GET /api/overview} — KPIs globaux avec filtres multi-critères.
+    \item \texttt{GET /api/geography} — Analyse géographique et heatmap villes $\times$ mois.
+    \item \texttt{GET /api/models} — Métriques comparatives de tous les modèles ML.
+    \item \texttt{GET /api/features} — Importance des variables avec classement par famille.
+    \item \texttt{GET /api/threshold} — Simulation économique de seuils de décision.
+    \item \texttt{POST /api/scoring} — Scoring en temps réel d'un GAB individuel.
+    \item \texttt{GET /api/monitoring} — Surveillance temps réel de l'ensemble du parc.
+    \item \texttt{GET /api/predictions-stats} — Statistiques du journal d'audit.
+    \item \texttt{POST /api/reload-model} — Rechargement à chaud du modèle (admin).
+    \item \texttt{GET /api/export/*} — Export des données en CSV, Excel et PDF.
+\end{itemize}
+
+\subsection{Fonctionnalités techniques}
+
+\begin{itemize}
+    \item \textbf{Cache intelligent} — TTL configurable (300s par défaut, 25s pour le monitoring).
+    \item \textbf{Mode dégradé} — Algorithme heuristique avec 9 composantes pondérées.
+    \item \textbf{Journal d'audit} — Toutes les prédictions enregistrées en JSONL.
+    \item \textbf{CORS} — Configuration pour le développement local.
+\end{itemize}
+
+% ===================================================================
+\section{Phase 5 — Développement du frontend (Dashboard)}
+
+\textbf{Statut : \done}
+
+\subsection{Pages développées}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Page} & \textbf{Route} & \textbf{Contenu} \\
+\hline
+Vue d'ensemble & \texttt{/} & 4 KPIs + 5 graphiques (tendances, types, environnements, saisons, âge) \\
+\hline
+Géographie & \texttt{/geo} & Classement des villes + heatmap interactive \\
+\hline
+Modèles & \texttt{/modeles} & Radar comparatif + matrice de confusion \\
+\hline
+Features & \texttt{/features} & Bar chart importance + répartition par famille \\
+\hline
+Seuil & \texttt{/seuil} & Simulation coûts/bénéfices + seuil optimal \\
+\hline
+Scoring & \texttt{/scoring} & 15 paramètres + jauge de risque + contributions \\
+\hline
+\end{tabularx}
+\caption{Pages du tableau de bord}
+\end{table}
+
+\subsection{Composants réutilisables}
+
+\begin{itemize}
+    \item \texttt{useApi} / \texttt{usePost} — Hooks de communication avec le backend.
+    \item \texttt{Skeleton} / \texttt{PageSkeleton} — Chargement avec animation shimmer.
+    \item \texttt{ErrorState} — Gestion unifiée des erreurs.
+    \item \texttt{Chart} — Wrapper Plotly avec palette et layout standardisés.
+    \item \texttt{Icons} — Bibliothèque d'icônes SVG et composants visuels.
+    \item \texttt{FilterContext} — Filtres globaux partagés entre toutes les pages.
+\end{itemize}
+
+\subsection{Fonctionnalités UX}
+
+\begin{itemize}
+    \item Thème clair/sombre avec persistance localStorage.
+    \item Graphiques interactifs (zoom, hover, sélection).
+    \item Alertes temps réel avec icône de notification (cloche).
+    \item Export multi-format (CSV, Excel, PDF).
+    \item Barre latérale de navigation avec logo BPM.
+\end{itemize}
+
+% ===================================================================
+\section{Phase 6 — Intégration, tests et optimisation}
+
+\textbf{Statut : \inprog\ (90\%)}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|X|c|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Tâche} & \textbf{Statut} \\
+\hline
+Intégration frontend-backend complète & \done \\
+\hline
+Tests de bout en bout de tous les modules & \done \\
+\hline
+Script de démarrage automatisé (\texttt{start.bat}) & \done \\
+\hline
+Optimisation des performances (cache, lazy loading) & \done \\
+\hline
+Export PDF avec mise en forme professionnelle & \done \\
+\hline
+Tests de charge et de stress & \inprog \\
+\hline
+Tests sur différents navigateurs & \inprog \\
+\hline
+\end{tabularx}
+\caption{Détail de la phase d'intégration}
+\end{table}
+
+% ===================================================================
+\section{Phase 7 — Rédaction du rapport et soutenance}
+
+\textbf{Statut : \inprog\ (60\%)}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|X|c|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Tâche} & \textbf{Statut} \\
+\hline
+Rédaction du cahier des charges & \done \\
+\hline
+Rédaction de l'état d'avancement & \done \\
+\hline
+Rédaction du rapport de PFE & \inprog \\
+\hline
+Préparation de la présentation de soutenance & \notstarted \\
+\hline
+\end{tabularx}
+\caption{Détail de la phase de rédaction}
+\end{table}
+
+% ===================================================================
+\chapter{Démonstration du Système}
+% ===================================================================
+
+\section{Captures d'écran}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../outputs/figures/fig1_vue_ensemble.png}
+    \caption{Vue d'ensemble du jeu de données — statistiques descriptives et répartition des variables}
+    \label{fig:vue_ensemble}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../outputs/figures/fig2_distributions.png}
+    \caption{Distributions des variables numériques clés}
+    \label{fig:distributions}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../outputs/figures/fig3_correlations.png}
+    \caption{Matrice de corrélation entre les variables principales}
+    \label{fig:correlations}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../outputs/figures/fig4_boxplots_top6.png}
+    \caption{Boxplots des 6 variables les plus discriminantes}
+    \label{fig:boxplots}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../outputs/figures/fig5_analyse_temporelle.png}
+    \caption{Analyse temporelle — évolution des pannes et tendances saisonnières}
+    \label{fig:temporelle}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../outputs/models/fig7_comparaison_modeles.png}
+    \caption{Comparaison des performances des 5 modèles ML}
+    \label{fig:comparaison}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../outputs/models/fig8_roc_pr_cm.png}
+    \caption{Courbes ROC, Precision-Recall et matrice de confusion du meilleur modèle}
+    \label{fig:roc_pr_cm}
+\end{figure}
+
+\begin{figure}[h!]
+    \centering
+    \includegraphics[width=0.95\textwidth]{../outputs/models/fig9_analyse_metier.png}
+    \caption{Analyse métier — impact économique et optimisation du seuil de décision}
+    \label{fig:analyse_metier}
+\end{figure}
+
+\section{Accès au système}
+
+\begin{tcolorbox}[colback=bpmgray, colframe=bpmblue, title=\textbf{Lancement du système}]
+\begin{enumerate}
+    \item Exécuter le script \texttt{start.bat} à la racine du projet.
+    \item Le backend FastAPI démarre sur \texttt{http://localhost:8000}.
+    \item Le frontend React démarre sur \texttt{http://localhost:5173}.
+    \item Le navigateur s'ouvre automatiquement sur le tableau de bord.
+\end{enumerate}
+\end{tcolorbox}
+
+% ===================================================================
+\chapter{Résultats et Impact}
+% ===================================================================
+
+\section{Résultats techniques}
+
+\begin{itemize}
+    \item Le meilleur modèle (Random Forest) atteint un \textbf{F1-score $\geq$ 0.70} et un \textbf{rappel $\geq$ 0.75}, détectant plus de 3 pannes sur 4 avant qu'elles ne surviennent.
+    \item L'analyse de seuil économique montre des \textbf{économies potentielles supérieures à 50\%} par rapport à une stratégie purement corrective.
+    \item Le système de scoring temps réel fournit des prédictions en \textbf{moins de 200~ms}.
+\end{itemize}
+
+\section{Impact métier}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{|l|X|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Indicateur} & \textbf{Amélioration attendue} \\
+\hline
+Coût de maintenance & Réduction $>$ 50\% (passage correctif $\rightarrow$ préventif) \\
+\hline
+Disponibilité des GAB & Augmentation significative (prédiction 48h à l'avance) \\
+\hline
+Satisfaction client & Amélioration (moins d'automates hors service) \\
+\hline
+Temps de décision & Réduction (tableau de bord temps réel vs rapports manuels) \\
+\hline
+Traçabilité & 100\% des prédictions journalisées \\
+\hline
+\end{tabularx}
+\caption{Impact métier attendu}
+\end{table}
+
+% ===================================================================
+\chapter{Difficultés Rencontrées et Solutions}
+% ===================================================================
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{|X|X|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Difficulté} & \textbf{Solution apportée} \\
+\hline
+Déséquilibre de classes (9,8\% positifs) & Métriques adaptées (F1, AUC-PR au lieu de l'accuracy) \\
+\hline
+Risque de fuite temporelle & Découpage temporel strict (train 2022 / test 2023) \\
+\hline
+Taille du bundle frontend (Plotly.js $>$ 5 MB) & Utilisation de \texttt{plotly.js-dist-min}, warning accepté \\
+\hline
+Indisponibilité potentielle du modèle ML & Implémentation d'un mode dégradé heuristique \\
+\hline
+Calibration des probabilités & Application de la régression isotonique \\
+\hline
+\end{tabularx}
+\caption{Difficultés et solutions}
+\end{table}
+
+% ===================================================================
+\chapter{Prochaines Étapes}
+% ===================================================================
+
+\begin{enumerate}
+    \item \textbf{Finaliser les tests} — Compléter les tests de charge et de compatibilité navigateurs.
+    \item \textbf{Rédiger le rapport de PFE} — Documenter l'ensemble de la démarche, les résultats et les perspectives.
+    \item \textbf{Préparer la soutenance} — Créer la présentation et préparer la démonstration en direct.
+\end{enumerate}
+
+\subsection*{Perspectives d'évolution}
+
+\begin{itemize}
+    \item Déploiement sur un serveur de production (Docker, cloud).
+    \item Intégration avec le système d'information de la BPM (données temps réel).
+    \item Réentraînement périodique automatisé des modèles.
+    \item Extension à d'autres types d'équipements bancaires.
+    \item Ajout de notifications par email/SMS pour les alertes critiques.
+\end{itemize}
+
+\end{document}

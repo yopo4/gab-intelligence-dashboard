@@ -18,6 +18,7 @@ joblib>=1.3.0           # sérialisation best_model.pkl (utilisé par scikit-lea
 # ── Dépendances export (PDF, Excel) ────────────────────────────
 openpyxl>=3.1.0           # export Excel multi-feuilles
 reportlab>=4.0.0          # export PDF rapports professionnels
+matplotlib>=3.8.0         # graphiques matplotlib pour PDF (backend Agg)
 
 # ── Dépendances optionnelles — explicabilité ──────────────────
 # shap est utilisé dans inference.py pour les feature contributions (TreeExplainer).

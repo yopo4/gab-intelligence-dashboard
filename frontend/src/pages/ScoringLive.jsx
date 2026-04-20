@@ -13,29 +13,7 @@ import {
   IconCheck,
   IconInfo,
 } from "../components/Icons";
-
-const VILLES = [
-  "Agadir",
-  "Beni Mellal",
-  "Casablanca",
-  "El Jadida",
-  "Fès",
-  "Kénitra",
-  "Marrakech",
-  "Meknès",
-  "Oujda",
-  "Rabat",
-  "Safi",
-  "Tanger",
-  "Tétouan",
-];
-const TYPES = ["Diebold", "Hyosung", "NCR", "Wincor"];
-const ENVS = [
-  "Agence_Facade",
-  "Agence_Interieure",
-  "Centre_Commercial",
-  "Site_Isole",
-];
+import { VILLES, TYPES, ENVS } from "../constants";
 
 function niveauCallout(n) {
   if (n === "CRITIQUE") return "coral";
@@ -69,7 +47,6 @@ const DEFAULTS = {
 
 export default function ScoringLive() {
   const [inp, setInp] = useState(DEFAULTS);
-  const [infoOpen, setInfoOpen] = useState(false);
   const set = (k) => (v) => setInp((p) => ({ ...p, [k]: v }));
   const theme = useContext(ThemeContext);
   const cc = chartColors(theme === "dark");

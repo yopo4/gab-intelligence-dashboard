@@ -43,14 +43,14 @@ if errorlevel 1 (
 
 :: Lancer le backend dans une nouvelle fenetre
 echo [1/2] Backend FastAPI sur http://localhost:8000 ...
-start "GAB Backend" cmd /k "cd /d "%BACK%" && python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000"
+start "GAB Backend" cmd /k "cd /d %BACK% && python -m uvicorn main:app --reload --host 127.0.0.1 --port 8000"
 
 :: Attendre que le backend soit pret
 timeout /t 4 /nobreak >nul
 
 :: Lancer le frontend dans une nouvelle fenetre
 echo [2/2] Frontend React sur http://localhost:5173 ...
-start "GAB Frontend" cmd /k "set PATH=%PATH% && cd /d "%FRONT%" && npm install && npm run dev"
+start "GAB Frontend" cmd /k "set PATH=%PATH% && cd /d %FRONT% && npm install && npm run dev"
 
 echo.
 echo  ============================================

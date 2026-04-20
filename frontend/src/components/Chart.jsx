@@ -74,7 +74,9 @@ export function baseLayout(overrides = {}) {
 }
 
 export default function Chart({ data, layout, style }) {
-  const theme = useContext(ThemeContext); // subscribe → re-render on theme change
+  useContext(ThemeContext); // subscribe → re-render when theme changes, baseLayout() reads DOM
+  // No key={theme}: Plotly handles layout updates via normal prop diffing.
+  // Removing the key prevents costly full unmount/remount of every chart on toggle.
   return (
     <Plot
       data={data}
@@ -82,7 +84,6 @@ export default function Chart({ data, layout, style }) {
       config={{ displayModeBar: false, responsive: true }}
       style={{ width: "100%", ...style }}
       useResizeHandler
-      key={theme} // force full remount on theme change
     />
   );
 }

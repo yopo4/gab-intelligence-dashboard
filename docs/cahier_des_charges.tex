@@ -1,0 +1,465 @@
+\documentclass[a4paper,12pt]{report}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[french]{babel}
+\usepackage{geometry}
+\geometry{margin=2.5cm}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{xcolor}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{hyperref}
+\usepackage{tikz}
+\usepackage{tcolorbox}
+\usepackage{longtable}
+
+% Couleurs BPM
+\definecolor{bpmred}{HTML}{C8102E}
+\definecolor{bpmgreen}{HTML}{00703C}
+\definecolor{bpmblue}{HTML}{1A3A5C}
+\definecolor{bpmgray}{HTML}{F5F5F5}
+
+% Titres
+\titleformat{\chapter}[display]{\normalfont\Huge\bfseries\color{bpmred}}{\chaptertitlename\ \thechapter}{20pt}{\Huge}
+\titleformat{\section}{\normalfont\Large\bfseries\color{bpmblue}}{\thesection}{1em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries\color{bpmblue!80}}{\thesubsection}{1em}{}
+
+% En-tête/pied de page
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\textcolor{bpmblue}{Cahier des Charges — GAB Intelligence Dashboard}}
+\fancyhead[R]{\small\textcolor{bpmblue}{Banque Populaire du Maroc}}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=bpmblue,
+    urlcolor=bpmred,
+}
+
+\begin{document}
+
+% ===== PAGE DE GARDE =====
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+
+{\Large\textsc{Banque Populaire du Maroc}}\par
+\vspace{0.5cm}
+{\large Projet de Fin d'Études — 2024/2025}\par
+
+\vspace{2cm}
+\rule{\textwidth}{2pt}\par
+\vspace{0.8cm}
+{\Huge\bfseries\textcolor{bpmred}{Cahier des Charges}}\par
+\vspace{0.5cm}
+{\LARGE\textcolor{bpmblue}{Système de Détection et de Prédiction\\des Pannes des GAB}}\par
+\vspace{0.3cm}
+{\Large GAB Intelligence Dashboard}\par
+\vspace{0.8cm}
+\rule{\textwidth}{2pt}\par
+
+\vspace{2cm}
+
+\begin{tabular}{ll}
+\textbf{Organisme d'accueil :} & Banque Populaire du Maroc \\
+\textbf{Encadrant entreprise :} & \textit{[Nom de l'encadrant]} \\
+\textbf{Encadrant académique :} & \textit{[Nom de l'encadrant]} \\
+\textbf{Réalisé par :} & \textit{[Votre nom complet]} \\
+\textbf{Filière :} & \textit{[Votre filière]} \\
+\textbf{Année universitaire :} & 2024 — 2025 \\
+\end{tabular}
+
+\vfill
+{\small Document confidentiel — Diffusion restreinte}
+\end{titlepage}
+
+% ===== TABLE DES MATIÈRES =====
+\tableofcontents
+\newpage
+
+% ===================================================================
+\chapter{Contexte Général du Projet}
+% ===================================================================
+
+\section{Présentation de l'organisme d'accueil}
+
+La \textbf{Banque Populaire du Maroc (BPM)} est l'un des principaux groupes bancaires marocains, disposant d'un réseau étendu d'agences et de Guichets Automatiques Bancaires (GAB) couvrant l'ensemble du territoire national.
+
+Le parc de GAB de la BPM compte environ \textbf{200 automates} répartis dans \textbf{13 villes} du Maroc, offrant des services de retrait, de consultation de solde et d'opérations bancaires 24h/24 et 7j/7.
+
+\section{Problématique}
+
+Les pannes des GAB représentent un enjeu majeur pour la banque~:
+
+\begin{itemize}[leftmargin=2cm]
+    \item \textbf{Impact financier} — Chaque panne engendre des coûts d'intervention corrective élevés (estimés à \textbf{5\,000 MAD} par intervention) et un manque à gagner sur les transactions.
+    \item \textbf{Impact client} — L'indisponibilité d'un GAB dégrade l'expérience client et l'image de la banque.
+    \item \textbf{Maintenance réactive} — Le modèle actuel repose sur une maintenance corrective (intervention après panne), générant des temps d'arrêt prolongés.
+\end{itemize}
+
+Le taux de panne moyen observé est de l'ordre de \textbf{9,8\%} sur l'historique disponible (2022–2023), avec des disparités géographiques et saisonnières significatives.
+
+\section{Objectifs du projet}
+
+Le projet vise à concevoir et développer un \textbf{système intelligent de détection et de prédiction des pannes} des GAB, permettant~:
+
+\begin{enumerate}[leftmargin=2cm]
+    \item \textbf{Prédire les pannes 48h à l'avance} grâce à des modèles de Machine Learning.
+    \item \textbf{Visualiser en temps réel} l'état du parc GAB via un tableau de bord interactif.
+    \item \textbf{Optimiser les coûts de maintenance} en passant d'un modèle correctif à un modèle préventif.
+    \item \textbf{Fournir des outils d'aide à la décision} pour les équipes de maintenance et la direction.
+\end{enumerate}
+
+% ===================================================================
+\chapter{Périmètre Fonctionnel}
+% ===================================================================
+
+\section{Modules fonctionnels}
+
+Le système est structuré en \textbf{six modules} principaux~:
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{|c|l|X|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{\#} & \textbf{Module} & \textbf{Description} \\
+\hline
+1 & Vue d'ensemble & KPIs globaux, tendances mensuelles, répartition par type/environnement/saison/âge \\
+\hline
+2 & Analyse géographique & Classement des villes par taux de panne, heatmap villes $\times$ mois \\
+\hline
+3 & Comparaison de modèles & Radar des métriques (F1, Précision, Rappel, AUC-ROC, AUC-PR), matrice de confusion \\
+\hline
+4 & Importance des features & Top features par importance, répartition par famille, export multi-format \\
+\hline
+5 & Optimisation du seuil & Simulation économique coûts/bénéfices, seuil optimal par F1 et par coût \\
+\hline
+6 & Scoring en temps réel & Prédiction de risque de panne par GAB, jauge interactive, contributions des variables \\
+\hline
+\end{tabularx}
+\caption{Modules fonctionnels du système}
+\end{table}
+
+\section{Fonctionnalités transversales}
+
+\begin{itemize}
+    \item \textbf{Filtrage global} — Filtres multi-sélection par ville (13), type de GAB (Diebold, Hyosung, NCR, Wincor), et année.
+    \item \textbf{Monitoring temps réel} — Surveillance continue avec alertes automatiques pour les niveaux ÉLEVÉ et CRITIQUE.
+    \item \textbf{Export de données} — Export en CSV, Excel et PDF avec mise en forme professionnelle.
+    \item \textbf{Thème clair/sombre} — Interface adaptable avec persistance du choix utilisateur.
+    \item \textbf{Journal d'audit} — Traçabilité de toutes les prédictions effectuées (format JSONL).
+\end{itemize}
+
+\section{Niveaux de risque}
+
+Le système classifie chaque GAB selon quatre niveaux~:
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabular}{|l|c|l|l|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Niveau} & \textbf{Score} & \textbf{Couleur} & \textbf{Action recommandée} \\
+\hline
+FAIBLE & $< 0.15$ & \textcolor{green!60!black}{Vert} & Aucune action requise \\
+\hline
+MODÉRÉ & $0.15 - 0.35$ & \textcolor{blue}{Bleu} & Surveillance renforcée \\
+\hline
+ÉLEVÉ & $0.35 - 0.65$ & \textcolor{orange}{Orange} & Planifier une maintenance préventive \\
+\hline
+CRITIQUE & $\geq 0.65$ & \textcolor{red}{Rouge} & Intervention immédiate recommandée \\
+\hline
+\end{tabular}
+\caption{Classification des niveaux de risque}
+\end{table}
+
+% ===================================================================
+\chapter{Spécifications Techniques}
+% ===================================================================
+
+\section{Architecture du système}
+
+Le système adopte une architecture \textbf{client-serveur} à deux tiers~:
+
+\begin{tcolorbox}[colback=bpmgray, colframe=bpmblue, title=Architecture technique]
+\begin{center}
+\begin{tikzpicture}[
+    box/.style={draw, rounded corners, minimum width=4cm, minimum height=1.2cm, align=center, font=\small},
+    arrow/.style={->, thick, >=stealth}
+]
+\node[box, fill=blue!10] (frontend) at (0,0) {\textbf{Frontend}\\React 18 + Vite 5\\Port 5173};
+\node[box, fill=red!10] (backend) at (7,0) {\textbf{Backend}\\FastAPI + Uvicorn\\Port 8000};
+\node[box, fill=green!10] (data) at (7,-3) {\textbf{Données \& Modèles}\\CSV + Pickle + JSON};
+\node[box, fill=orange!10] (ml) at (0,-3) {\textbf{Pipeline ML}\\scikit-learn\\5 modèles};
+
+\draw[arrow] (frontend) -- node[above]{\footnotesize API REST} (backend);
+\draw[arrow] (backend) -- (data);
+\draw[arrow] (ml) -- (data);
+\draw[arrow, dashed] (ml) -- (backend);
+\end{tikzpicture}
+\end{center}
+\end{tcolorbox}
+
+\section{Stack technologique}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|l|l|X|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Couche} & \textbf{Technologie} & \textbf{Rôle} \\
+\hline
+Frontend & React 18, Vite 5, Plotly.js & Interface utilisateur interactive, graphiques \\
+\hline
+Backend & FastAPI, Uvicorn & API REST, logique métier, scoring \\
+\hline
+Machine Learning & scikit-learn, Pandas, NumPy & Entraînement, évaluation, inférence \\
+\hline
+Sérialisation & Joblib (Pickle) & Persistance des modèles entraînés \\
+\hline
+Export & openpyxl, ReportLab, Matplotlib & Génération de rapports CSV/Excel/PDF \\
+\hline
+\end{tabularx}
+\caption{Stack technologique}
+\end{table}
+
+\section{Données}
+
+\subsection{Jeu de données}
+
+\begin{itemize}
+    \item \textbf{Volume} — 146\,000 observations sur 2 ans (janvier 2022 – décembre 2023).
+    \item \textbf{Couverture} — 200 GAB répartis dans 13 villes marocaines.
+    \item \textbf{Variable cible} — \texttt{panne\_sous\_48h} (binaire, taux positif $\approx$ 9,8\% — classe déséquilibrée).
+    \item \textbf{Features} — 101 variables d'ingénierie réparties en 7 familles~:
+\end{itemize}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|l|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Famille} & \textbf{Description} \\
+\hline
+Original & Variables brutes (âge, température, erreurs, transactions) \\
+\hline
+Lag (J-1/3/7) & Valeurs retardées à 1, 3 et 7 jours \\
+\hline
+Rolling (7-14j) & Moyennes et écarts-types glissants \\
+\hline
+Tendance & Dérivées et pentes temporelles \\
+\hline
+Temporel & Mois, jour de la semaine, saison \\
+\hline
+Catégoriel & Encodages (ville, type GAB, environnement) \\
+\hline
+Interaction & Croisements entre variables clés \\
+\hline
+\end{tabular}
+\caption{Familles de features}
+\end{table}
+
+\subsection{Stratégie de découpage}
+
+\begin{itemize}
+    \item \textbf{Découpage temporel} — Entraînement sur 2022, test sur 2023 (pas de fuite temporelle).
+    \item \textbf{Calibration} — Régression isotonique pour calibrer les probabilités.
+\end{itemize}
+
+\section{Modèles de Machine Learning}
+
+Cinq modèles sont entraînés et comparés~:
+
+\begin{enumerate}
+    \item Régression Logistique
+    \item Random Forest
+    \item Gradient Boosting
+    \item Support Vector Machine (SVM)
+    \item Réseau de Neurones (MLP)
+\end{enumerate}
+
+Un modèle \textit{Dummy} (stratifié) sert de référence de base. Le meilleur modèle est automatiquement sélectionné selon le score F1.
+
+\section{Mode dégradé (Heuristique)}
+
+En cas d'indisponibilité du modèle ML, un \textbf{algorithme heuristique} prend le relais avec 9 composantes pondérées dérivées de l'importance des features~:
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.2}
+\begin{tabular}{|l|c|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Composante} & \textbf{Poids} \\
+\hline
+Jours depuis dernière maintenance & 22\% \\
+Score de négligence maintenance & 14\% \\
+Ratio d'erreurs & 14\% \\
+Tendance température & 11\% \\
+Température absolue & 9\% \\
+Âge du GAB & 9\% \\
+Risque matériel & 7\% \\
+Taux d'erreurs transactions & 6\% \\
+Tendance erreurs & 3\% \\
+\hline
+\end{tabular}
+\caption{Pondérations du mode heuristique}
+\end{table}
+
+\section{API REST — Endpoints}
+
+\begin{longtable}{|l|l|p{6cm}|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Méthode} & \textbf{Endpoint} & \textbf{Description} \\
+\hline
+\endfirsthead
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Méthode} & \textbf{Endpoint} & \textbf{Description} \\
+\hline
+\endhead
+GET & \texttt{/api/health} & État du système et mode du modèle \\
+\hline
+GET & \texttt{/api/metadata} & Métadonnées (villes, types, années) \\
+\hline
+GET & \texttt{/api/overview} & KPIs et tendances (filtrable) \\
+\hline
+GET & \texttt{/api/geography} & Analyse géographique et heatmap \\
+\hline
+GET & \texttt{/api/models} & Métriques de tous les modèles \\
+\hline
+GET & \texttt{/api/features} & Importance des variables \\
+\hline
+GET & \texttt{/api/threshold} & Simulation de seuil économique \\
+\hline
+POST & \texttt{/api/scoring} & Scoring en temps réel d'un GAB \\
+\hline
+GET & \texttt{/api/monitoring} & État temps réel de tous les GAB \\
+\hline
+GET & \texttt{/api/predictions-stats} & Statistiques du journal d'audit \\
+\hline
+POST & \texttt{/api/reload-model} & Rechargement à chaud du modèle \\
+\hline
+GET & \texttt{/api/export/*} & Export CSV / Excel / PDF \\
+\hline
+\caption{Endpoints de l'API REST}
+\end{longtable}
+
+% ===================================================================
+\chapter{Exigences Non Fonctionnelles}
+% ===================================================================
+
+\begin{itemize}
+    \item \textbf{Performance} — Temps de réponse API $<$ 500~ms pour les endpoints principaux. Cache avec TTL configurable (défaut 300s, monitoring 25s).
+    \item \textbf{Disponibilité} — Mode dégradé heuristique garantissant le scoring même sans modèle ML.
+    \item \textbf{Sécurité} — Token d'administration pour les opérations sensibles (rechargement de modèle). Variables d'environnement pour la configuration en production.
+    \item \textbf{Traçabilité} — Journal JSONL de toutes les prédictions avec horodatage.
+    \item \textbf{Ergonomie} — Interface responsive, thème clair/sombre, graphiques interactifs.
+    \item \textbf{Maintenabilité} — Architecture modulaire, séparation front/back, code documenté.
+\end{itemize}
+
+% ===================================================================
+\chapter{Livrables}
+% ===================================================================
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\textwidth}{|c|X|l|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{\#} & \textbf{Livrable} & \textbf{Format} \\
+\hline
+1 & Code source du tableau de bord (frontend + backend) & Répertoire Git \\
+\hline
+2 & Modèles ML entraînés et calibrés & Fichiers .pkl \\
+\hline
+3 & Jeu de données avec features d'ingénierie & CSV \\
+\hline
+4 & Documentation technique (API, architecture) & PDF \\
+\hline
+5 & Rapport de PFE & PDF \\
+\hline
+6 & Script de déploiement automatisé & Batch (.bat) \\
+\hline
+\end{tabularx}
+\caption{Liste des livrables}
+\end{table}
+
+% ===================================================================
+\chapter{Planning Prévisionnel}
+% ===================================================================
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|c|X|c|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Phase} & \textbf{Description} & \textbf{Durée} \\
+\hline
+1 & Étude de l'existant et analyse des besoins & 2 semaines \\
+\hline
+2 & Collecte et préparation des données & 2 semaines \\
+\hline
+3 & Ingénierie des features et entraînement ML & 3 semaines \\
+\hline
+4 & Développement du backend (API REST) & 3 semaines \\
+\hline
+5 & Développement du frontend (Dashboard) & 3 semaines \\
+\hline
+6 & Intégration, tests et optimisation & 2 semaines \\
+\hline
+7 & Rédaction du rapport et soutenance & 2 semaines \\
+\hline
+\end{tabularx}
+\caption{Planning prévisionnel}
+\end{table}
+
+% ===================================================================
+\chapter{Contraintes et Risques}
+% ===================================================================
+
+\section{Contraintes}
+
+\begin{itemize}
+    \item Données historiques limitées à 2 ans (2022–2023).
+    \item Classe cible déséquilibrée ($\approx$ 9,8\% de pannes).
+    \item Environnement de développement local (pas de serveur de production dédié).
+\end{itemize}
+
+\section{Risques identifiés}
+
+\begin{table}[h!]
+\centering
+\renewcommand{\arraystretch}{1.3}
+\begin{tabularx}{\textwidth}{|X|c|X|}
+\hline
+\rowcolor{bpmblue!10}
+\textbf{Risque} & \textbf{Probabilité} & \textbf{Mitigation} \\
+\hline
+Qualité insuffisante des données & Moyenne & Nettoyage rigoureux, validation croisée \\
+\hline
+Surapprentissage des modèles & Moyenne & Découpage temporel, régularisation \\
+\hline
+Dérive du modèle en production & Élevée & Monitoring des prédictions, rechargement à chaud \\
+\hline
+Indisponibilité du modèle ML & Faible & Mode dégradé heuristique automatique \\
+\hline
+\end{tabularx}
+\caption{Matrice des risques}
+\end{table}
+
+\end{document}
